@@ -9,45 +9,59 @@ game_on = False
 instructions = '''
 Welcome to PUSHTOWN!!! Stay in bounds, or die.  Push other players offscreen, move to stay within the scrolling screen and eat apples to make your pushes stronger.
 Whoever has the least deaths when time is up wins.
-
-Player 1: Press 'w' to jump. Press 'a' to move left. Press 'd' to move right. Press 's' to push.  
+Player 1: Press 'w' to jump. Press 'a' to move left. Press 'd' to move right. Press 's' to push.
 Player 2: Press the up arrow key to jump. Press the left arrow key to move left. Press the right arrow key to move right. Press the down arrow key to push.
 '''
-def draw_title(keys):
-	global game_on
-	if keys:
-		game_on = True
-	keys.clear()
-	to_draw = []
-	ittle_box = gamebox.from_text(x, y, ‘Game Title’, ‘color’, True)
-	to_draw.append(title_box)
-#drawing the instructions
-for line in instructions.split(‘\n’):
-	to_draw.append(gamebox.from_text(x, y, line, size, ‘color’)
 
+def draw_title(keys):
+    global game_on
+    if keys:
+        game_on = True
+    keys.clear()
+    to_draw = []
+    title_box = gamebox.from_text(400, 30, 'PUSHTOWN!!!', 'blue', True)
+    to_draw.append(title_box)
+#drawing the instructions
+    for line in instructions.split('\n'):
+        to_draw.append(gamebox.from_text(300, 200, line, 30, 'blue'))
+
+    for box in to_draw:
+        camera.draw(box)
 
 #These are the things we need to draw for the game
-p1 = gamebox.
-p2 = gamebox.
+# p1 = gamebox.
+# p2 = gamebox.
+background = gamebox.from_color(400, 300, 'green', 800, 600)
+def draw_game(keys):
+    to_draw = []
+    to_draw.append(background)
+    for box in to_draw:
+        camera.draw(box)
 
 #This is how the characters will move
 def tick(keys):
-    if pygame.K_RIGHT in keys:
-        p2.x += 5
-    if pygame.K_LEFT in keys:
-        p2.x -= 5
-    if pygame.K_UP in keys:
-        p2.y -= 5
-    if pygame.K_DOWN in keys:
-        p2.y #attack
-    if pygame.K_d in keys:
-        p1.x += 5
-    if pygame.K_a in keys:
-        p1.x -= 5
-    if pygame.K_w in keys:
-        p1.y -= 5
-    if pygame.K_s in keys:
-        p1.y #attack
+    to_draw = []
+    # if pygame.K_RIGHT in keys:
+    #     p2.x += 5
+    # if pygame.K_LEFT in keys:
+    #     p2.x -= 5
+    # if pygame.K_UP in keys:
+    #     p2.y -= 5
+    # if pygame.K_DOWN in keys:
+    #     p2.y #attack
+    # if pygame.K_d in keys:
+    #     p1.x += 5
+    # if pygame.K_a in keys:
+    #     p1.x -= 5
+    # if pygame.K_w in keys:
+    #     p1.y -= 5
+    # if pygame.K_s in keys:
+    #     p1.y #attack
+
+
+    camera.display()
+
+gamebox.timer_loop(30, tick)
 
 '''      
 Optional features:
