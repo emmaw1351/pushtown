@@ -53,7 +53,7 @@ def draw_title():
 #These are the things we need to draw for the game
 # p1 = gamebox.
 # p2 = gamebox.
-def regular_gameplay(keys, gravity=.13, friction=.13):
+def regular_gameplay(keys, gravity=.13, friction=.1):
     global game_state
     to_draw.clear()
 
@@ -64,18 +64,19 @@ def regular_gameplay(keys, gravity=.13, friction=.13):
 
         # this friction still isn't working correctly :/
 
-        if player[0].xspeed > 0:
-            player[0].xspeed -= friction
-
-        if player[0].xspeed < 0:
-            player[0].xspeed += friction
-
         player[0].yspeed += gravity
 
         if player[0].yspeed != 0:
             for platform in platforms:
                 if player[0].bottom_touches(platform):
                     player[0].yspeed = 0
+        if player[0].xspeed != 0:
+
+            if player[0].xspeed > 0:
+                player[0].xspeed -= player[0].xspeed/10
+
+            if player[0].xspeed < 0:
+                 player[0].xspeed += -player[0].xspeed/10
 
     if pygame.K_RIGHT in keys:
         p2.x += 3
@@ -131,7 +132,7 @@ def tick(keys, seconds=120):
         if 0 > p1.x or p1.x > 800 or 0 > p1.y or p1.y > 600:
             p1.x = 400
             p1.y = 300
-            p1.yspeed = p2.yspeed = 0
+            p1.yspeed = p1.xspeed = 0
             player_data[1][2] += 1
 
         for platform in platforms:
