@@ -1,8 +1,11 @@
-#The game is going to be like Smash Bros, with two players that can move around obstacles and when one player “hits” the other, they gain points.
 
 import pygame
 import gamebox
-camera = gamebox.Camera(800, 600)
+import random
+
+camera_width = 800
+camera_height = 600
+camera = gamebox.Camera(camera_width, camera_height)
 
 #This is the title page
 to_draw = []
@@ -10,8 +13,9 @@ p1 = gamebox.from_color(300, 300, "red", 15, 15)
 p2 = gamebox.from_color(500, 300, "blue", 15, 15)
 p1.yspeed = p2.yspeed = p1.xspeed = p2.xspeed = p1_score = p2_score = 0
 p1_strength = p2_strength = 4
-
-platforms = [gamebox.from_color(400, 400, "white", 300, 15)]
+apples = [gamebox.from_color(400, 385, "orange", 10, 10)]
+platforms = [gamebox.from_color(400, 400, "white", 300, 15), gamebox.from_color(200, 300, "white", 300, 15), gamebox.from_color(600, 300, "white", 300, 15),
+gamebox.from_color(200, 500, "white", 300, 15), gamebox.from_color(600, 500, "white", 300, 15), gamebox.from_color(400, 200, "white", 300, 15)]
 
 player_data = [[p1, p1_strength, p1_score], [p2, p2_strength, p2_score]]
 
@@ -53,7 +57,9 @@ def draw_title():
 #These are the things we need to draw for the game
 # p1 = gamebox.
 # p2 = gamebox.
-def regular_gameplay(keys, gravity=.13, friction=.1):
+
+
+def regular_gameplay(keys, gravity=.13):
     global game_state
     to_draw.clear()
 
@@ -63,6 +69,11 @@ def regular_gameplay(keys, gravity=.13, friction=.1):
     for player in player_data:
 
         # this friction still isn't working correctly :/
+        for apple in apples:
+            if player[0].touches(apple):
+                player[1] += 1
+                apples.remove(apple)
+            camera.draw(apple)
 
         player[0].yspeed += gravity
 
@@ -70,6 +81,10 @@ def regular_gameplay(keys, gravity=.13, friction=.1):
             for platform in platforms:
                 if player[0].bottom_touches(platform):
                     player[0].yspeed = 0
+                    player[0].move_to_stop_overlapping(platform)
+                if player[0].top_touches(platform):
+                    player[0].move_to_stop_overlapping(platform)
+                    player[0].yspeed += .13
         if player[0].xspeed != 0:
 
             if player[0].xspeed > 0:
@@ -78,11 +93,14 @@ def regular_gameplay(keys, gravity=.13, friction=.1):
             if player[0].xspeed < 0:
                  player[0].xspeed += -player[0].xspeed/10
 
+
+    if p1.touches(p2):
+        p1.move_both_to_stop_overlapping(p2)
     if pygame.K_RIGHT in keys:
         p2.x += 3
     if pygame.K_LEFT in keys:
         p2.x -= 3
-    if pygame.K_UP in keys and p2.yspeed == 0:
+    if pygame.K_UP in keys and (p2.yspeed == 0 or p2.bottom_touches(p1)):
         p2.yspeed -= 6
     if pygame.K_DOWN in keys:
         if p2.left_touches(p1):
@@ -94,7 +112,7 @@ def regular_gameplay(keys, gravity=.13, friction=.1):
         p1.x += 3
     if pygame.K_a in keys:
         p1.x -= 3
-    if pygame.K_w in keys and p1.yspeed == 0:
+    if pygame.K_w in keys and (p1.yspeed == 0 or p1.bottom_touches(p2)):
         p1.yspeed -= 6
     if pygame.K_s in keys:
         if p1.left_touches(p2):
@@ -106,12 +124,42 @@ def regular_gameplay(keys, gravity=.13, friction=.1):
         player[0].y += player[0].yspeed
         player[0].x += player[0].xspeed
 
+    if game_state % 60 == 0:
+        apple_x = camera.x + random.randint(-400, 400)
+        apple_y = camera.y + random.randint(-300, 300)
+
+        for platform in platforms:
+            if platform.x - 5 < apple_x < platform.x + 5:
+                apple_x += 20
+            if platform.y -5 < apple_y < platform.y - 5:
+                apple_y += 20
+
+        apples.append(gamebox.from_color(apple_x, apple_y, "orange", 10, 10))
+
+def camera_movement(time):
+
+    period = time/4
+
+    if game_state < period:
+        camera.y -= camera_height/period
+
+    elif game_state < period*2:
+        camera.x += camera_width/period
+
+    elif game_state < period*3:
+        camera.y += camera_height/period
+
+    elif game_state < period*4:
+        camera.x -= camera_width/period
+
+
 
 
 #This is how the characters will move
-def tick(keys, seconds=120):
+def tick(keys, seconds=30):
 
     global game_state
+    duration = seconds * ticks_per_second
     camera.clear("black")
     if game_state == -1:
         draw_title()
@@ -122,69 +170,77 @@ def tick(keys, seconds=120):
 
         regular_gameplay(keys)
         game_state += 1
-        score_and_timer(player_data[0][2], player_data[1][2], seconds - (game_state // 60))
-        if 0 > p2.x or p2.x > 800 or 0 > p2.y or p2.y > 600:
-            p2.x = 400
-            p2.y = 300
+        score_and_timer(player_data[0][2], player_data[1][2], (duration - game_state) // 60)
+        if camera.x - 400 > p2.x or p2.x > camera.x + 400 or  camera.y - 300 > p2.y or p2.y > camera.y + 300:
+            p2.x = camera.x
+            p2.y = camera.y
             p2.yspeed = p2.xspeed = 0
             player_data[0][2] += 1
 
-        if 0 > p1.x or p1.x > 800 or 0 > p1.y or p1.y > 600:
-            p1.x = 400
-            p1.y = 300
+        if camera.x - 400 > p1.x or p1.x > camera.x + 400 or camera.y - 300 > p1.y or p1.y > camera.y + 300:
+            p1.x = camera.x
+            p1.y = camera.y
             p1.yspeed = p1.xspeed = 0
             player_data[1][2] += 1
 
         for platform in platforms:
             camera.draw(platform)
 
-        if game_state == seconds * 60:
+        """if game_state == seconds * 60:
             game_state = -2
-            to_draw.clear()
+            to_draw.clear()"""
 
+        camera_movement(duration)
 
     if game_state == -2:
 
-        if player_data[0][2] > player_data[1][2]:
-            winner = "Player 1"
-            color = "red"
+        if player_data[0][2] == player_data[1][2]:
+
+            winner = "It's a tie!"
+            color = "white"
+
         else:
-            color = "blue"
-            winner = "Player 2"
-        win_statement = gamebox.from_text(400, 300, winner + " wins!", 50, color)
+            if player_data[0][2] > player_data[1][2]:
+                winner = "Player 1 wins!"
+                color = "red"
+
+            else:
+                color = "blue"
+                winner = "Player 2 wins!"
+
+        win_statement = gamebox.from_text(400, 300, winner, 50, color)
+
         to_draw.append(win_statement)
 
 
     for box in to_draw:
         camera.draw(box)
 
+
     camera.display()
 
 
 def score_and_timer(death_count_2, death_count_1, time):
 
-    score1 = gamebox.from_text(200, 100, "Death count: " + str(death_count_1), 20, "red")
-    score2 = gamebox.from_text(600, 100, "Death count: " + str(death_count_2), 20, "blue")
-    timer = gamebox.from_text(400, 100, str(time), 20, "white")
+    score1 = gamebox.from_text(camera.x - camera_width/4, camera.y - camera_height/3, "Death count: " + str(death_count_1), 20, "red")
+    score2 = gamebox.from_text(camera.x + camera_width/4, camera.y - camera_height/3, "Death count: " + str(death_count_2), 20, "blue")
+    timer = gamebox.from_text(camera.x, camera.y - camera_height/3, str(time), 20, "white")
 
     camera.draw(score1)
     camera.draw(score2)
     camera.draw(timer)
 
-
-gamebox.timer_loop(60, tick)
+ticks_per_second = 60
+gamebox.timer_loop(ticks_per_second, tick)
 
 
 
 '''      
 Optional features:
-1. 2 players simultaneously| check!
-2. respawn to middle of screen when character gets pushed off screen| basic respawning is possible
+1. 2 players simultaneously| check!#############################
+2. respawn to middle of screen when character gets pushed off screen| basic respawning is possible####################
 3. Scrolling level
 4. Animation
-5. timer/death count| Basic time and death count has been implemented 
-6. Collectibles to make character stronger
-
-# I put in some buggy pushing mechanics... they're pretty unrefined and the friction isn't working correctly, but it's
-there
+5. timer/death count| Basic time and death count has been implemented ###########################
+6. Collectibles to make character stronger#############################
 '''
