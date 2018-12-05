@@ -2,6 +2,7 @@
 import pygame
 import gamebox
 import random
+import urllib
 
 camera_width = 800
 camera_height = 600
@@ -9,8 +10,20 @@ camera = gamebox.Camera(camera_width, camera_height)
 
 #This is the title page
 to_draw = []
-p1 = gamebox.from_color(300, 300, "red", 15, 15)
-p2 = gamebox.from_color(500, 300, "blue", 15, 15)
+image1 = gamebox.load_sprite_sheet('sprite_blue_walking.png', 1, 2)
+p1 = gamebox.from_image(0, 0, image1[0])
+#p1.right = camera.left
+p1.y = 50
+
+
+image2 = gamebox.load_sprite_sheet('sprite_walking_red.png', 1, 2)
+p2 = gamebox.from_image(0, 0, image2[0])
+#p2.right = camera.left
+p2.y = 50
+
+
+# p1 = gamebox.from_color(300, 300, "red", 15, 15)
+# p2 = gamebox.from_color(500, 300, "blue", 15, 15)
 p1.yspeed = p2.yspeed = p1.xspeed = p2.xspeed = p1_score = p2_score = 0
 p1_strength = p2_strength = 4
 apples = [gamebox.from_color(400, 385, "orange", 10, 10)]
@@ -49,14 +62,6 @@ def draw_title():
         text_height += 25
 
     to_draw.append(gamebox.from_text(400, text_height+25, instructions[3], 40, "white"))
-
-
-
-#drawing the instructions
-
-#These are the things we need to draw for the game
-# p1 = gamebox.
-# p2 = gamebox.
 
 
 def regular_gameplay(keys, gravity=.13):
