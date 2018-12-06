@@ -93,7 +93,6 @@ def regular_gameplay(keys, gravity=.13):
             if player[0].xspeed < 0:
                  player[0].xspeed += -player[0].xspeed/10
 
-
     if p1.touches(p2):
         p1.move_both_to_stop_overlapping(p2)
     if pygame.K_RIGHT in keys:
@@ -135,6 +134,10 @@ def regular_gameplay(keys, gravity=.13):
                 apple_y += 20
 
         apples.append(gamebox.from_color(apple_x, apple_y, "orange", 10, 10))
+
+    for apple in apples:
+        if camera.x - 400 > apple.x or apple.x > camera.x + 400 or camera.y - 300 > apple.y or apple.y > camera.y + 300:
+            apples.remove(apple)
 
 def camera_movement(time):
 
@@ -190,7 +193,8 @@ def tick(keys, seconds=30):
             game_state = -2
             to_draw.clear()"""
 
-        camera_movement(duration)
+        #camera_movement(duration)
+        print(p2.x, p2.y)
 
     if game_state == -2:
 
